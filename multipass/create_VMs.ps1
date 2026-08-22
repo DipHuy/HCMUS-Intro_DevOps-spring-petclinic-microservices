@@ -1,5 +1,7 @@
 $MasterName = "master"
 $WorkerName = "worker"
+$MasterCloudInit = Join-Path $PSScriptRoot "cloud-init-master.yaml"
+$WorkerCloudInit = Join-Path $PSScriptRoot "cloud-init-worker.yaml"
 $Image = "22.04"
 $CPU = 2
 $Memory = "2G"
@@ -7,13 +9,13 @@ $Disk = "10G"
 
 Write-Host "Creating Master VM..."
 
-multipass launch $Image --name $MasterName --cpus $CPU --memory $Memory --disk $Disk --cloud-init cloud-init-master.yaml
+multipass launch $Image --name $MasterName --cpus $CPU --memory $Memory --disk $Disk --cloud-init $MasterCloudInit
 Write-Host "Master VM created."
 
 Write-Host "----------"
 
 Write-Host "Creating Worker VM..."
-multipass launch $Image --name $WorkerName --cpus $CPU --memory $Memory --disk $Disk --cloud-init cloud-init-worker.yaml
+multipass launch $Image --name $WorkerName --cpus $CPU --memory $Memory --disk $Disk --cloud-init $WorkerCloudInit
 Write-Host "Worker VM created."
 
 $masterIp = (multipass info $MasterName | Select-String "IPv4").ToString().Split()[1]
