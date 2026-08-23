@@ -39,3 +39,28 @@ multipass info $MasterName
 Write-Host "----------"
 multipass info $WorkerName
 
+
+
+Write-Host "Waiting for all Kubernetes nodes to become Ready..."
+
+do {
+    Start-Sleep -Seconds 5
+
+    $nodes = multipass exec $MasterName -- kubectl get nodes --no-headers 2>$null
+
+    Write-Host $nodes
+
+} until (
+    $nodes -match "$MasterName\s+Ready" -and
+    $nodes -match "$WorkerName\s+Ready"
+)
+
+Write-Host "All nodes are Ready."
+
+Write-Host "Installing NGINX Ingress..."
+
+multipass exec $MasterName -- helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+
+multipass exec $MasterName -- helm repo update
+
+multipass exec $MasterName -- helm install nginx-ingress ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace --kubeconfig=/home/ubuntu/.kube/config --wait --timeout 5m

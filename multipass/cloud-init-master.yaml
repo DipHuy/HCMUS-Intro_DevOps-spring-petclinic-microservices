@@ -44,3 +44,20 @@ runcmd:
   - apt-get update
   - apt-get install -y kubelet kubeadm kubectl
   - apt-mark hold kubelet kubeadm kubectl
+
+  # Setup K8s master node
+  - MASTER_IP=$(hostname -I | awk '{print $1}') && kubeadm init --apiserver-advertise-address=$MASTER_IP --pod-network-cidr=10.244.0.0/16
+  - mkdir -p /home/ubuntu/.kube
+  - cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
+  - chown ubuntu:ubuntu /home/ubuntu/.kube/config
+  - kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.1/manifests/calico.yaml
+
+  # Add Helm
+  - curl -fsSL -o /tmp/get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4
+  - chmod 700 /tmp/get_helm.sh
+  - bash /tmp/get_helm.sh
+  - rm /tmp/get_helm.sh
+
+  - helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+  - helm repo update
+  - helm install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace --kubeconfig=/home/ubuntu/.kube/config
