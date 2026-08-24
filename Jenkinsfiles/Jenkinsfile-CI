@@ -9,6 +9,19 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
+        
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'PAT_Dockerhub_Intro_Devops_Prj02',
+                        usernameVariable: 'DOCKER_USERNAME',
+                        passwordVariable: 'DOCKER_PASSWORD'
+                    )
+                ]) {
+                script {
+                    bat """
+                        echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
+                    """
+                }
             }
         }
 
@@ -50,9 +63,6 @@ pipeline {
                     echo "Executing Maven command: ${mvnCommand}"
                     bat mvnCommand
 
-                    bat """
-                    docker logout
-                    """
                     
                     }
                 }
