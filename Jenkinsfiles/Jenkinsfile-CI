@@ -53,7 +53,7 @@ pipeline {
                             }
 
 
-                            def mvnCommand = "./mvnw.cmd clean install -P buildDocker -DskipTests " + "-Ddocker.image.prefix=${env.DOCKER_USERNAME} " + "-Ddocker.image.tag.commit=${env.COMMIT_ID} " + "-Dcontainer.build.extraarg=\"--push\""
+                            def mvnCommand = "./mvnw.cmd clean install -P buildDocker -DskipTests " + "-Ddocker.image.prefix=${env.DOCKER_USERNAME} " + "-Ddocker.image.tag.commit=${commitID} " + "-Dcontainer.build.extraarg=\"--push\""
 
                             echo "Executing Maven command: ${mvnCommand}"
                             bat mvnCommand
