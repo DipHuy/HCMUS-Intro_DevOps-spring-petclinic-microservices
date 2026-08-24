@@ -1,0 +1,46 @@
+#cloud-config
+hostname: worker
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - containerd
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gpg
+
+write_files:
+  # Apply sysctl params
+  - path: /etc/sysctl.d/kubernetes.conf
+    content: |
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.bridge.bridge-nf-call-iptables = 1
+      net.ipv4.ip_forward = 1
+
+runcmd:
+  # Disable swap
+  - swapoff -a
+  - sed -i '/ swap / s/^/#/' /etc/fstab
+
+  # Load K8s module
+  - modprobe overlay
+  - modprobe br_netfilter
+  - sysctl --system
+
+  # Default containerd config
+  - mkdir -p /etc/containerd
+  - sh -c 'containerd config default > /etc/containerd/config.toml'
+  - sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+  - systemctl enable --now containerd
+  - systemctl restart containerd
+
+  # Add K8s repo
+  - sh -c 'curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key > /etc/apt/trusted.gpg.d/kubernetes-apt-keyring.asc'
+  - sh -c 'echo "deb [signed-by=/etc/apt/trusted.gpg.d/kubernetes-apt-keyring.asc] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /" > /etc/apt/sources.list.d/kubernetes.list'
+
+  # Install K8s
+  - apt-get update
+  - apt-get install -y kubelet kubeadm kubectl
+  - apt-mark hold kubelet kubeadm kubectl

@@ -1,0 +1,91 @@
+pipeline {
+    agent { label 'windows' }
+
+    environment {
+        DOCKERHUB_CREDENTIALS_ID = 'PAT_Dockerhub_Intro_DevOps'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Get Commit ID') {
+            steps {
+                script {
+                  if (env.GIT_COMMIT) {
+                    env.COMMIT_ID = env.GIT_COMMIT
+                  } else {
+                    env.COMMIT_ID = bat(
+                        script: 'git rev-parse HEAD',
+                        returnStdout: true
+                    ).trim()
+
+                    echo "Branch      : ${env.BRANCH_NAME}"
+                    echo "Commit ID   : ${env.COMMIT_ID}"
+                    echo "Docker Tag  : ${env.COMMIT_ID}"
+                }
+            }
+        }
+        }
+
+        stage('Build and Push Docker Image') {
+            steps {
+                script {
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: "${DOCKERHUB_CREDENTIALS_ID}",
+                            usernameVariable: 'DOCKER_USERNAME',
+                            passwordVariable: 'DOCKER_PASSWORD'
+                        )
+                     ])  {
+                        try {
+
+                            bat """
+                            echo %DOCKER_PASSWORD%| docker login -u %DOCKER_USERNAME% --password-stdin
+                            """
+                            
+                            def commitID = env.COMMIT_ID
+                            if (env.BRANCH_NAME == 'main') {
+                                commitID = 'latest'
+                            }
+
+
+                            def mvnCommand = "./mvnw.cmd clean install -P buildDocker -DskipTests " + "-Ddocker.image.prefix=${env.DOCKER_USERNAME} " + "-Ddocker.image.tag.commit=${env.COMMIT_ID} " + "-Dcontainer.build.extraarg=\"--push\""
+
+                            echo "Executing Maven command: ${mvnCommand}"
+                            bat mvnCommand
+
+                            echo "Docker image built successfully"
+                        } catch (Exception e) {
+                            echo "Error during Docker build or push: ${e.getMessage()}"
+                            error(message: "Failed to build images via Maven")
+
+                        }
+                    }
+                    
+                    
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Docker image pushed successfully:"
+        }
+
+        failure {
+            echo "Build or Docker push failed."
+        }
+
+        always {
+            bat """
+                docker image prune -f
+            """
+        }
+    }
+}
+
