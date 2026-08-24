@@ -2,7 +2,7 @@ pipeline {
     agent { label 'windows' }
 
     environment {
-        DOCKERHUB_CREDENTIALS_ID = 'PAT_Dockerhub_Intro_Devops_Prj02'
+        DOCKERHUB_CREDENTIALS_ID = 'PAT_Docker_Intro_DevOps'
     }
 
     stages {
@@ -43,12 +43,11 @@ pipeline {
                      ])  {
                         try {
 
-                            powershell '''
-                            $pass = $env:DOCKER_PASSWORD
-                            $pass | docker login -u $env:DOCKER_USERNAME --password-stdin
-                            '''
-
-
+                            bat """
+                            echo username: %DOCKER_USERNAME%
+                            echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
+                            """
+                            
                             def commitID = env.COMMIT_ID
                             if (env.BRANCH_NAME == 'main') {
                                 commitID = 'latest'
