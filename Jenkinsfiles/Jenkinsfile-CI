@@ -6,7 +6,6 @@ pipeline {
     }
 
     stages {
-
         stage('Checkout') {
             steps {
                 checkout scm
@@ -29,6 +28,7 @@ pipeline {
                     echo "Docker Tag  : ${env.COMMIT_ID}"
                 }
             }
+        }
         }
 
         stage('Build Docker Image') {
@@ -76,4 +76,4 @@ pipeline {
         }
     }
 }
-}
+
