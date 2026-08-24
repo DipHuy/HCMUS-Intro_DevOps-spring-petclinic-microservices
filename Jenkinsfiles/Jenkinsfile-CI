@@ -42,6 +42,8 @@ pipeline {
                                 commitID = 'latest'
                             }
 
+                            bat "docker context use default"
+
                             def mvnCommand = "./mvnw.cmd clean install -P buildDocker -DskipTests " + "-Ddocker.image.prefix=${env.DOCKER_REGISTRY} " + "-Ddocker.image.tag.commit=${env.COMMIT_ID} " + "-Dcontainer.build.extraarg=\"--push\""
 
                             echo "Executing Maven command: ${mvnCommand}"
