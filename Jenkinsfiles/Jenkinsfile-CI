@@ -1,0 +1,78 @@
+pipeline {
+    agent { label 'windows' }
+
+    environment {
+        DOCKER_IMAGE = 'diphuy/hcmus_intro_devops_project02'
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Get Commit ID') {
+            steps {
+                script {
+                  if (env.GIT_COMMIT) {
+                    env.COMMIT_ID = env.GIT_COMMIT
+                  } else {
+                    env.COMMIT_ID = bat(
+                        script: 'git rev-parse HEAD',
+                        returnStdout: true
+                    ).trim()
+
+                    echo "Branch      : ${env.BRANCH_NAME}"
+                    echo "Commit ID   : ${env.COMMIT_ID}"
+                    echo "Docker Tag  : ${env.COMMIT_ID}"
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                def mvnCommand = "./mvnw.cmd clean install -P buildDocker -DskipTests " + "-Ddocker . image.prefix=${env.DOCKER_USERNAME} " + "-Ddocker.image.tag.commit=${env.COMMIT_ID} " + "-Dcontainer.build. extraarg=\" --push\""
+
+                echo "Executing Maven command: ${mvnCommand}"
+                bat mvnCommand
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'PAT_Dockerhub_Intro_Devops_Prj02',
+                        usernameVariable: 'DOCKER_USERNAME',
+                        passwordVariable: 'DOCKER_PASSWORD'
+                    )
+                ]) {
+                    bat """
+                        echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
+                        docker push ${DOCKER_IMAGE}:${COMMIT_ID}
+                        docker logout
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Docker image pushed successfully:"
+            echo "${DOCKER_IMAGE}:${COMMIT_ID}"
+        }
+
+        failure {
+            echo "Build or Docker push failed."
+        }
+
+        always {
+            bat """
+                docker image prune -f
+            """
+        }
+    }
+}
