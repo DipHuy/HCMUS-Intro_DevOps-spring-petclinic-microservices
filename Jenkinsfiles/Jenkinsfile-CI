@@ -2,7 +2,6 @@ pipeline {
     agent { label 'windows' }
 
     environment {
-        DOCKER_REGISTRY = 'diphuy'
         DOCKERHUB_CREDENTIALS_ID = 'PAT_Dockerhub_Intro_Devops_Prj02'
     }
 
@@ -35,8 +34,18 @@ pipeline {
         stage('Build and Push Docker Image') {
             steps {
                 script {
-                    docker.withRegistry("https://index.docker.io/v1/", env.DOCKERHUB_CREDENTIALS_ID) {
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: "${DOCKERHUB_CREDENTIALS_ID}",
+                            usernameVariable: 'DOCKER_USERNAME',
+                            passwordVariable: 'DOCKER_PASSWORD'
+                        )
+                     ])  {
                         try {
+
+                            bat """
+                                echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
+                            """
                             def commitID = env.COMMIT_ID
                             if (env.BRANCH_NAME == 'main') {
                                 commitID = 'latest'
@@ -44,7 +53,7 @@ pipeline {
 
                             bat "docker context use default"
 
-                            def mvnCommand = "./mvnw.cmd clean install -P buildDocker -DskipTests " + "-Ddocker.image.prefix=${env.DOCKER_REGISTRY} " + "-Ddocker.image.tag.commit=${env.COMMIT_ID} " + "-Dcontainer.build.extraarg=\"--push\""
+                            def mvnCommand = "./mvnw.cmd clean install -P buildDocker -DskipTests " + "-Ddocker.image.prefix=${env.DOCKER_USERNAME} " + "-Ddocker.image.tag.commit=${env.COMMIT_ID} " + "-Dcontainer.build.extraarg=\"--push\""
 
                             echo "Executing Maven command: ${mvnCommand}"
                             bat mvnCommand
