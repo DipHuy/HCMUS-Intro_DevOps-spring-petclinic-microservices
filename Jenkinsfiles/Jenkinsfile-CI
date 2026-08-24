@@ -43,10 +43,11 @@ pipeline {
                      ])  {
                         try {
 
-                            bat """
-                                echo username: %DOCKER_USERNAME%
-                                echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
+                            powershell """
+                            $env:DOCKER_PASSWORD | docker login -u $env:DOCKER_USERNAME --password-stdin
                             """
+
+
                             def commitID = env.COMMIT_ID
                             if (env.BRANCH_NAME == 'main') {
                                 commitID = 'latest'
