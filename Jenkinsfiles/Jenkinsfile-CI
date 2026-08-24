@@ -31,7 +31,6 @@ pipeline {
         }
         }
 
-
         stage('Build and Push Docker Image') {
             steps {
                 withCredentials([
@@ -41,20 +40,21 @@ pipeline {
                         passwordVariable: 'DOCKER_PASSWORD'
                     )
                 ]) {
-                    script {
+                  script {
+                    bat """
+                        echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
+                    """
+
                     def mvnCommand = "./mvnw.cmd clean install -P buildDocker -DskipTests " + "-Ddocker.image.prefix=${env.DOCKER_USERNAME} " + "-Ddocker.image.tag.commit=${env.COMMIT_ID} " + "-Dcontainer.build.extraarg=\"--push\""
 
                     echo "Executing Maven command: ${mvnCommand}"
                     bat mvnCommand
 
-                    bat """
-                        echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
-                        docker push ${DOCKER_IMAGE}:${COMMIT_ID}
-                        docker logout
-                    """
-                    }
                     
                     }
+                }
+                    
+                
             }
         }
     }
