@@ -43,10 +43,10 @@ pipeline {
                      ])  {
                         try {
 
-                            powershell """
+                            powershell '''
                             $pass = $env:DOCKER_PASSWORD
                             $pass | docker login -u $env:DOCKER_USERNAME --password-stdin
-                            """
+                            '''
 
 
                             def commitID = env.COMMIT_ID
