@@ -75,7 +75,6 @@ pipeline {
     post {
         success {
             echo "Docker image pushed successfully:"
-            echo "${DOCKER_IMAGE}:${COMMIT_ID}"
         }
 
         failure {
