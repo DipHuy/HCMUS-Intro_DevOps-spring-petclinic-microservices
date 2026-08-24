@@ -2,28 +2,15 @@ pipeline {
     agent { label 'windows' }
 
     environment {
-        DOCKER_IMAGE = 'diphuy/hcmus_intro_devops_project02'
+        DOCKER_REGISTRY = 'diphuy'
+        DOCKERHUB_CREDENTIALS_ID = 'PAT_Dockerhub_Intro_Devops_Prj02'
     }
 
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
-        
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'PAT_Dockerhub_Intro_Devops_Prj02',
-                        usernameVariable: 'DOCKER_USERNAME',
-                        passwordVariable: 'DOCKER_PASSWORD'
-                    )
-                ]) {
-                script {
-                    bat """
-                        echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
-                    """
-                }
             }
-        }
         }
 
         stage('Get Commit ID') {
@@ -55,20 +42,28 @@ pipeline {
                     )
                 ]) {
                   script {
-                    bat """
-                        echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
-                    """
+                    docker.withRegistry("https://index.docker.io/v1/", env.DOCKERHUB_CREDENTIALS_ID) {
+                            try {
+                                def commitID = env.COMMIT_ID
+                                if (env.BRANCH_NAME == 'main') {
+                                    commitID = 'latest'
+                                }
+                                
+                                def mvnCommand = "./mvnw.cmd clean install -P buildDocker -DskipTests " + "-Ddocker.image.prefix=${env.DOCKER_REGISTRY} " + "-Ddocker.image.tag.commit=${env.COMMIT_ID} " + "-Dcontainer.build.extraarg=\"--push\""
 
-                    def mvnCommand = "./mvnw.cmd clean install -P buildDocker -DskipTests " + "-Ddocker.image.prefix=${env.DOCKER_USERNAME} " + "-Ddocker.image.tag.commit=${env.COMMIT_ID} " + "-Dcontainer.build.extraarg=\"--push\""
+                                echo "Executing Maven command: ${mvnCommand}"
+                                bat mvnCommand
 
-                    echo "Executing Maven command: ${mvnCommand}"
-                    bat mvnCommand
+                                echo "Docker image built successfully"
+                            } catch (Exception e) {
+                                echo "Error during Docker build or push: ${e.getMessage()}"
+                                error(message: "Failed to build images via Maven")
 
+                            }
+                        }
                     
                     }
                 }
-                    
-                
             }
         }
     }
