@@ -2,7 +2,7 @@ pipeline {
     agent { label 'windows' }
 
     environment {
-        DOCKERHUB_CREDENTIALS_ID = 'PAT_Docker_Intro_DevOps'
+        DOCKERHUB_CREDENTIALS_ID = 'PAT_Docker_Intro_DevOps_2'
     }
 
     stages {
