@@ -44,7 +44,8 @@ pipeline {
                         try {
 
                             powershell """
-                            $env:DOCKER_PASSWORD | docker login -u $env:DOCKER_USERNAME --password-stdin
+                            $pass = $env:DOCKER_PASSWORD
+                            $pass | docker login -u $env:DOCKER_USERNAME --password-stdin
                             """
 
 
