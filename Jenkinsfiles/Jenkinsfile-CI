@@ -50,6 +50,9 @@ pipeline {
                     echo "Executing Maven command: ${mvnCommand}"
                     bat mvnCommand
 
+                    bat """
+                    docker logout
+                    """
                     
                     }
                 }
