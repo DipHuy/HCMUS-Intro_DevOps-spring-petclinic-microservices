@@ -26,16 +26,16 @@ pipeline {
             steps {
                 script {
                     services = [
-                        [name: 'discovery-services', branch: params.['discovery-services'], port: 8761, nodePort: 30061],
-                        [name: 'admin-server', branch: params.['admin-server'], port: 9090, nodePort: 30090],
-                        [name: 'config-server', branch: params.['config-server'], port: 8888, nodePort: 30088],
-                        [name: 'api-gateway', branch: params.['api-gateway'], port: 8080, nodePort: 30080],
+                        [name: 'discovery-services', branch: params['discovery-services'], port: 8761, nodePort: 30061],
+                        [name: 'admin-server', branch: params['admin-server'], port: 9090, nodePort: 30090],
+                        [name: 'config-server', branch: params['config-server'], port: 8888, nodePort: 30088],
+                        [name: 'api-gateway', branch: params['api-gateway'], port: 8080, nodePort: 30080],
 
                         // random port
-                        [name: 'customers-services', branch: params.['customers-services'], port: 8081, nodePort: 30081],
-                        [name: 'visits-services', branch: params.['visits-services'], port: 8082, nodePort: 30082],
-                        [name: 'vets-services', branch: params.['vets-services'], port: 8083, nodePort: 30083],
-                        [name: 'genai-services', branch: params.['genai-services'], port: 8084, nodePort: 30084]
+                        [name: 'customers-services', branch: params['customers-services'], port: 8081, nodePort: 30081],
+                        [name: 'visits-services', branch: params['visits-services'], port: 8082, nodePort: 30082],
+                        [name: 'vets-services', branch: params['vets-services'], port: 8083, nodePort: 30083],
+                        [name: 'genai-services', branch: params['genai-services'], port: 8084, nodePort: 30084]
                     ]
                         
                     tags = []
