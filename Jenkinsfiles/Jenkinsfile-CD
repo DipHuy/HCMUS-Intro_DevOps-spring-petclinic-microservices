@@ -79,7 +79,7 @@ pipeline {
                             echo "Deploying using Helm chart"
 
                             bat """
-                                helm upgrade --install %SERVICE_NAME% %HELM_DIR% --set image.repository=%IMAGE_NAME%-%SERVICE_NAME% --set image.tag=%TAG% --set service.port=%SERVICE_PORT% --set service.nodePort=%SERVICE_NODEPORT% --namespace %NAMESPACE%
+                                helm upgrade --install ${service.name} ${HELM_DIR} --set image.repository=${IMAGE_NAME}-${service.name} --set image.tag=${tag} --set service.port=${service.port} --set service.nodePort=${service.nodePort} --namespace ${NAMESPACE}
                             """
                         }
                     }
