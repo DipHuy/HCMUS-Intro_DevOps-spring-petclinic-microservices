@@ -15,7 +15,7 @@ pipeline {
         REPO_URL = 'https://github.com/DipHuy/spring-petclinic-microservices.git'
         IMAGE_NAME = 'diphuy/spring-petclinic'
         HELM_DIR = 'Helm'
-        NAMESPACE = "dev-${env.BUILD_ID}"
+        NAMESPACE = "dev-${BUILD_ID}"
         DOMAIN = "${NAMESPACE}.com"
     }
 
@@ -67,7 +67,7 @@ pipeline {
                     script {
                         // Create the namespace if it doesn't exist
                         bat '''
-                            kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+                            kubectl create namespace %NAMESPACE% --dry-run=client -o yaml | kubectl apply -f -
                         '''
 
                         // Deploy each service using Helm
@@ -79,7 +79,7 @@ pipeline {
                             echo "Deploying using Helm chart"
 
                             bat """
-                                helm upgrade --install ${service.name} ${HELM_DIR} --set image.repository=${IMAGE_NAME}-${service.name} --set image.tag=${tag} --set service.port=${service.port} --set service.nodePort=${service.nodePort} --namespace ${NAMESPACE}
+                                helm upgrade --install %SERVICE_NAME% %HELM_DIR% --set image.repository=%IMAGE_NAME%-%SERVICE_NAME% --set image.tag=%TAG% --set service.port=%SERVICE_PORT% --set service.nodePort=%SERVICE_NODEPORT% --namespace %NAMESPACE%
                             """
                         }
                     }
