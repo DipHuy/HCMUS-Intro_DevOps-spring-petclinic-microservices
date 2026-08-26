@@ -1,0 +1,9 @@
+name: app
+
+image:
+  repository: diphuy/spring-petclinic
+  tag: latest
+
+service:
+  port: 8080
+  nodePort: 30080

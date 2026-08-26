@@ -1,0 +1,92 @@
+pipeline {
+    agent { label 'windows' }
+
+    parameters {
+        string(name: 'discovery-services', defaultValue: 'main')
+        string(name: 'config-server', defaultValue: 'main')
+        string(name: 'api-gateway', defaultValue: 'main')
+        string(name: 'customers-services', defaultValue: 'main')
+        string(name: 'genai-services', defaultValue: 'main')
+        string(name: 'vets-services', defaultValue: 'main')
+        string(name: 'visits-services', defaultValue: 'main')
+    }
+
+    environment {
+        REPO_URL = 'https://github.com/DipHuy/spring-petclinic-microservices.git'
+        IMAGE_NAME = 'diphuy/spring-petclinic'
+        HELM_DIR = 'Helm'
+        NAMESPACE = "dev-${env.BUILD_ID}"
+        DOMAIN = "${NAMESPACE}.com"
+    }
+
+    
+
+    stages {
+        stage('Prepare services') {
+            steps {
+                script {
+                    services = [
+                        [name: 'discovery-services', branch: params.['discovery-services'], port: 8761, nodePort: 30061],
+                        [name: 'admin-server', branch: params.['admin-server'], port: 9090, nodePort: 30090],
+                        [name: 'config-server', branch: params.['config-server'], port: 8888, nodePort: 30088],
+                        [name: 'api-gateway', branch: params.['api-gateway'], port: 8080, nodePort: 30080],
+
+                        // random port
+                        [name: 'customers-services', branch: params.['customers-services'], port: 8081, nodePort: 30081],
+                        [name: 'visits-services', branch: params.['visits-services'], port: 8082, nodePort: 30082],
+                        [name: 'vets-services', branch: params.['vets-services'], port: 8083, nodePort: 30083],
+                        [name: 'genai-services', branch: params.['genai-services'], port: 8084, nodePort: 30084]
+                    ]
+                        
+                    tags = []
+                    for (service in services) {
+                        def tag = 'latest'
+
+                        if (service.branch != 'main') {
+                            def commitID = bat(script: "git ls-remote ${REPO_URL} refs/heads/${service.branch}", returnStdout: true).trim()
+                            def parts = commitID.split('\\s+')
+                            
+                            if (parts.size() > 0 && parts[0]) {
+                                tag = parts[0].trim()
+                            }
+                            else {
+                                error "Failed to retrieve commit ID for branch ${service.branch}"
+                            }
+                        }
+
+                        tags.append(tag)
+                        echo "tag for ${service.name} (${service.branch}): ${tag}"
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                withCredentials([file(credentialsId: "Intro_DevOps_Kubeconfig", variable: 'KUBECONFIG')]) {
+                    script {
+                        // Create the namespace if it doesn't exist
+                        bat '''
+                            kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+                        '''
+
+                        // Deploy each service using Helm
+                        for (int i = 0; i < services.size(); ++i) {
+                            def service = services[i]
+                            def tag = tags[i]
+                            def image = "${IMAGE_NAME}-${service.name}:${tag}"
+
+                            echo "Deploying using Helm chart"
+
+                            bat """
+                                helm upgrade --install ${service.name} ${HELM_DIR} --set image.repository=${IMAGE_NAME}-${service.name} --set image.tag=${tag} --set service.port=${service.port} --set service.nodePort=${service.nodePort} --namespace ${NAMESPACE}
+                            """
+                        }
+                    }
+                }
+                
+            }
+        }
+        
+    }   
+}
