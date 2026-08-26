@@ -63,25 +63,28 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                script {
-                    // Create the namespace if it doesn't exist
-                    bat '''
-                        kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
-                    '''
+                withCredentials([file(credentialsId: "Intro_DevOps_Kubeconfig", variable: 'KUBECONFIG')]) {
+                    script {
+                        // Create the namespace if it doesn't exist
+                        bat '''
+                            kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+                        '''
 
-                    // Deploy each service using Helm
-                    for (int i = 0; i < services.size(); ++i) {
-                        def service = services[i]
-                        def tag = tags[i]
-                        def image = "${IMAGE_NAME}-${service.name}:${tag}"
+                        // Deploy each service using Helm
+                        for (int i = 0; i < services.size(); ++i) {
+                            def service = services[i]
+                            def tag = tags[i]
+                            def image = "${IMAGE_NAME}-${service.name}:${tag}"
 
-                        echo "Deploying using Helm chart"
+                            echo "Deploying using Helm chart"
 
-                        bat """
-                            helm upgrade --install ${service.name} ${HELM_DIR} --set image.repository=${IMAGE_NAME}-${service.name} --set image.tag=${tag} --set service.port=${service.port} --set service.nodePort=${service.nodePort} --namespace ${NAMESPACE}
-                        """
+                            bat """
+                                helm upgrade --install ${service.name} ${HELM_DIR} --set image.repository=${IMAGE_NAME}-${service.name} --set image.tag=${tag} --set service.port=${service.port} --set service.nodePort=${service.nodePort} --namespace ${NAMESPACE}
+                            """
+                        }
                     }
                 }
+                
             }
         }
         
