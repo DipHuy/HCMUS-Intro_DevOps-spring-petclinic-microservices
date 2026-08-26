@@ -54,7 +54,7 @@ pipeline {
                             }
                         }
 
-                        tags.append(tag)
+                        tags.add(tag)
                         echo "tag for ${service.name} (${service.branch}): ${tag}"
                     }
                 }
