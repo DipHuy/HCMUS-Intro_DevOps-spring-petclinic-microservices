@@ -25,10 +25,12 @@ pipeline {
         stage('Prepare services') {
             steps {
                 script {
-                    services = [
+                    first_services = [
                         [name: 'discovery-server', branch: params['discovery-server'], port: 8761, nodePort: 30061],
-                        [name: 'admin-server', branch: params['admin-server'], port: 9090, nodePort: 30090],
                         [name: 'config-server', branch: params['config-server'], port: 8888, nodePort: 30088],
+                    ]
+                    services = [
+                        [name: 'admin-server', branch: params['admin-server'], port: 9090, nodePort: 30090],
                         [name: 'api-gateway', branch: params['api-gateway'], port: 8080, nodePort: 30080],
 
                         // random port
@@ -39,6 +41,25 @@ pipeline {
                     ]
                         
                     tags = []
+                    for (service in first_services) {
+                        def tag = 'latest'
+
+                        if (service.branch != 'main') {
+                            def commitID = bat(script: "git ls-remote ${REPO_URL} refs/heads/${service.branch}", returnStdout: true).trim()
+                            def parts = commitID.split('\\s+')
+                            
+                            if (parts.size() > 0 && parts[0]) {
+                                tag = parts[0].trim()
+                            }
+                            else {
+                                error "Failed to retrieve commit ID for branch ${service.branch}"
+                            }
+                        }
+
+                        tags.add(tag)
+                        echo "tag for ${service.name} (${service.branch}): ${tag}"
+                    }
+
                     for (service in services) {
                         def tag = 'latest'
 
@@ -70,13 +91,21 @@ pipeline {
                             kubectl create namespace %NAMESPACE% --dry-run=client -o yaml | kubectl apply -f -
                         '''
 
+                        for (int i = 0; i < first_services.size(); ++i) {
+                            def service = first_services[i]
+                            def tag = tags[i]
+                            def image = "${IMAGE_NAME}-${service.name}:${tag}"
+
+                            bat """
+                                helm upgrade --install ${service.name} ${HELM_DIR} --set name=${service.name} --set image.repository=${IMAGE_NAME}-${service.name} --set image.tag=${tag} --set service.port=${service.port} --set service.nodePort=${service.nodePort} --namespace ${NAMESPACE} --wait --timeout 300s
+                            """
+                        }
+
                         // Deploy each service using Helm
                         for (int i = 0; i < services.size(); ++i) {
                             def service = services[i]
                             def tag = tags[i]
                             def image = "${IMAGE_NAME}-${service.name}:${tag}"
-
-                            echo "Deploying using Helm chart"
 
                             bat """
                                 helm upgrade --install ${service.name} ${HELM_DIR} --set name=${service.name} --set image.repository=${IMAGE_NAME}-${service.name} --set image.tag=${tag} --set service.port=${service.port} --set service.nodePort=${service.nodePort} --namespace ${NAMESPACE}
