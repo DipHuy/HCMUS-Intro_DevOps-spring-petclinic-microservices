@@ -17,6 +17,7 @@ pipeline {
         HELM_DIR = 'Helm'
         NAMESPACE = "dev-${BUILD_ID}"
         DOMAIN = "${NAMESPACE}.com"
+        JENKIN_URL = "https://jenkins.diephuy.dpdns.org/"
     }
 
     
@@ -114,6 +115,25 @@ pipeline {
                     }
                 }
                 
+            }
+        }
+
+        stage('Print out URL') {
+            steps {
+                withCredentials([string(credentialsId: 'Intro_DevOps_CleanUp_Auth_Token', variable: 'AUTH_TOKEN')]) {
+                script {
+                    echo "Access the application at: http://${DOMAIN}:30080"
+                    echo "To clean up the deployment, run the cleanup job at: ${cleanupJobUrl}"
+
+                    def cleanupJobUrl = "${JENKIN_URL}job/Clean_Up_Deployment/buildWithParameters?token=${AUTH_TOKEN}&namespace=${NAMESPACE}"
+
+                    currentBuild.description = """
+                        <div>
+                            <b>Deployment URL:</b> <a href='http://${DOMAIN}:30080' target='_blank'>http://${DOMAIN}:30080</a><br/>
+                            <b>Cleanup:</b> <a href="${cleanupJobUrl}" target='_blank'>Click here to delete deployment</a>
+                        </div>
+                    """.stripIndent()
+                }
             }
         }
         
