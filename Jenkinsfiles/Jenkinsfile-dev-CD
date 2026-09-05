@@ -40,12 +40,10 @@ pipeline {
                         echo "parts[${i}]: ${parts[i]}"
                     }
                     
-                    if (parts.size() <= 0 || !parts[0]) {
-                          error "Failed to retrieve commit ID for branch main"
-                    }
-                        
-                    IMAGE_TAG = parts[0].trim()
-                    echo "Retrieved commit ID for branch main: ${IMAGE_TAG}"
+                    def line = commitID.readLines().last().trim()
+
+                    IMAGE_TAG = line.tokenize()[0]
+
                 }
 
                 dir('gitops') {
