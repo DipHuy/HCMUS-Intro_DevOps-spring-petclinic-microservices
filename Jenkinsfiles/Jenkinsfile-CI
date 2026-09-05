@@ -47,13 +47,10 @@ pipeline {
                             echo %DOCKER_PASSWORD%| docker login -u %DOCKER_USERNAME% --password-stdin
                             """
                             
-                            def commitID = env.COMMIT_ID
-                            if (env.BRANCH_NAME == 'main') {
-                                commitID = 'latest'
-                            }
+                            def imageTag = env.COMMIT_ID
 
 
-                            def mvnCommand = "./mvnw.cmd clean install -P buildDocker -DskipTests " + "-Ddocker.image.prefix=${env.DOCKER_USERNAME} " + "-Ddocker.image.tag.commit=${commitID} " + "-Dcontainer.build.extraarg=\"--push\""
+                            def mvnCommand = "./mvnw.cmd clean install -P buildDocker -DskipTests " + "-Ddocker.image.prefix=${env.DOCKER_USERNAME} " + "-Ddocker.image.tag.commit=${imageTag} " + "-Dcontainer.build.extraarg=\"--push\""
 
                             echo "Executing Maven command: ${mvnCommand}"
                             bat mvnCommand

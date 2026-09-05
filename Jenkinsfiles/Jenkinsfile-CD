@@ -43,38 +43,30 @@ pipeline {
                         
                     tags = []
                     for (service in first_services) {
-                        def tag = 'latest'
-
-                        if (service.branch != 'main') {
-                            def commitID = bat(script: "git ls-remote ${REPO_URL} refs/heads/${service.branch}", returnStdout: true).trim()
-                            def parts = commitID.split('\\s+')
-                            
-                            if (parts.size() > 0 && parts[0]) {
-                                tag = parts[0].trim()
-                            }
-                            else {
-                                error "Failed to retrieve commit ID for branch ${service.branch}"
-                            }
+                        def commitID = bat(script: "git ls-remote ${REPO_URL} refs/heads/${service.branch}", returnStdout: true).trim()
+                        def parts = commitID.split('\\s+')
+                        
+                        if (parts.size() <= 0 || !parts[0]) {
+                            error "Failed to retrieve commit ID for branch ${service.branch}"
                         }
-
+                        
+                        def tag = parts[0].trim()
                         tags.add(tag)
                         echo "tag for ${service.name} (${service.branch}): ${tag}"
                     }
 
                     for (service in services) {
-                        def tag = 'latest'
 
-                        if (service.branch != 'main') {
-                            def commitID = bat(script: "git ls-remote ${REPO_URL} refs/heads/${service.branch}", returnStdout: true).trim()
-                            def parts = commitID.split('\\s+')
-                            
-                            if (parts.size() > 0 && parts[0]) {
-                                tag = parts[0].trim()
-                            }
-                            else {
-                                error "Failed to retrieve commit ID for branch ${service.branch}"
-                            }
+                        def commitID = bat(script: "git ls-remote ${REPO_URL} refs/heads/${service.branch}", returnStdout: true).trim()
+                        def parts = commitID.split('\\s+')
+                        
+                        if (parts.size() <= 0 || !parts[0]) {
+                            error "Failed to retrieve commit ID for branch ${service.branch}"
                         }
+                        
+                        def tag = parts[0].trim()
+                        
+                        
 
                         tags.add(tag)
                         echo "tag for ${service.name} (${service.branch}): ${tag}"
@@ -127,7 +119,6 @@ pipeline {
                     echo "Access the application at: http://${DOMAIN}:30080"
                     echo "To clean up the deployment, run the cleanup job at: ${cleanupJobUrl}"
 
-                    
 
                     currentBuild.description = """
                         <div>
