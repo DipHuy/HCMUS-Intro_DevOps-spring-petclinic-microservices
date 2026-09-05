@@ -63,20 +63,22 @@ pipeline {
                             passwordVariable: 'PASSWORD'
                         )
                      ]) {
-                          script {
-                          bat """
+                        script {
+                        bat """
+                                cat ${env.HELM_DIR}/${env.DEV_VALUES_FILE}
+                            """
+                            
+                        bat """
                               git config user.name "Jenkins"
                               git config user.email "jenkins@example.com"
 
                               git add .
                               git commit -m "Update dev values with image tag: ${env.IMAGE_TAG}" || exit 0
                               git push https://${USERNAME}:${PASSWORD}@${env.GITOPS_REPO_URL} HEAD:main
-                          """
+                        """
 
-                          bat """
-                                cat ${env.HELM_DIR}/${env.DEV_VALUES_FILE}
-                            """
-                          }
+                          
+                        }
                      }
                 }
             }
