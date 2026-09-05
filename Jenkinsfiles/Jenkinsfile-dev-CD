@@ -65,10 +65,6 @@ pipeline {
                      ]) {
                         script {
                         bat """
-                                cat ${env.HELM_DIR}/${env.DEV_VALUES_FILE}
-                            """
-                            
-                        bat """
                               git config user.name "Jenkins"
                               git config user.email "jenkins@example.com"
 
