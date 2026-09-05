@@ -32,14 +32,14 @@ pipeline {
                     def parts = commitID.split('\\s+')
 
                     // print parts for debugging
-                    echo "Commit ID parts: ${parts}"
+                    echo "Commit ID parts: ${commitID}"
 
                     
-                    if (parts.size() <= 0 || !parts[0]) {
+                    if (parts.size() <= 0 || !parts[1]) {
                           error "Failed to retrieve commit ID for branch main"
                     }
                         
-                    IMAGE_TAG = parts[0].trim()
+                    IMAGE_TAG = parts[1].trim()
                 }
 
                 dir('gitops') {
