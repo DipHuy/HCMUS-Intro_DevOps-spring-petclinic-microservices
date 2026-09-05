@@ -9,7 +9,6 @@ pipeline {
         HELM_DIR = 'Helm'
         DEV_VALUES_FILE = 'values-dev.yaml'
         JENKIN_URL = "https://jenkins.diephuy.dpdns.org/"
-        IMAGE_TAG = ""
     }
 
 
@@ -31,17 +30,17 @@ pipeline {
                 script {
                     def commitID = bat(script: "git ls-remote ${env.REPO_URL} refs/heads/main", returnStdout: true).trim()
                     def parts = commitID.split('\\s+')
-                        
+                    
                     if (parts.size() <= 0 || !parts[0]) {
                           error "Failed to retrieve commit ID for branch main"
                     }
                         
-                    env.IMAGE_TAG = parts[0].trim()
+                    IMAGE_TAG = parts[0].trim()
                 }
 
                 dir('gitops') {
                     script {
-                        def tag = env.IMAGE_TAG
+                        def tag = IMAGE_TAG
                         def valuesFilePath = "${HELM_DIR}/${DEV_VALUES_FILE}"
                         def valuesContent = readFile(file: valuesFilePath)
                         def updatedContent = valuesContent.replaceAll(/tag:\s*[A-Za-z0-9._-]+/,"tag: ${tag}")
@@ -69,7 +68,7 @@ pipeline {
                               git config user.email "jenkins@example.com"
 
                               git add .
-                              git commit -m "Update dev values with image tag: ${env.IMAGE_TAG}" || exit 0
+                              git commit -m "Update dev values with image tag: ${IMAGE_TAG}" || exit 0
                               git push https://${USERNAME}:${PASSWORD}@${env.GITOPS_REPO_URL} HEAD:main
                         """
 
