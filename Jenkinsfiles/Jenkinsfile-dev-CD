@@ -34,6 +34,11 @@ pipeline {
 
                     def parts = commitID.split('\\s+')
 
+                    echo "parts: ${parts}"
+
+                    for (int i = 0; i < parts.size(); i++) {
+                        echo "parts[${i}]: ${parts[i]}"
+                    }
                     
                     if (parts.size() <= 0 || !parts[0]) {
                           error "Failed to retrieve commit ID for branch main"
