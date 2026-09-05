@@ -28,18 +28,19 @@ pipeline {
         stage('Update dev values') {
             steps {
                 script {
-                    def commitID = bat(script: "git ls-remote ${env.REPO_URL} refs/heads/main", returnStdout: true).trim()
+                    def commitID = bat(script: "@git ls-remote ${env.REPO_URL} refs/heads/main", returnStdout: true).trim()
+
+                    echo "raw commitID: ${commitID}"
+
                     def parts = commitID.split('\\s+')
 
-                    // print parts for debugging
-                    echo "Commit ID parts: ${commitID}"
-
                     
-                    if (parts.size() <= 0 || !parts[1]) {
+                    if (parts.size() <= 0 || !parts[0]) {
                           error "Failed to retrieve commit ID for branch main"
                     }
                         
-                    IMAGE_TAG = parts[1].trim()
+                    IMAGE_TAG = parts[0].trim()
+                    echo "Retrieved commit ID for branch main: ${IMAGE_TAG}"
                 }
 
                 dir('gitops') {
