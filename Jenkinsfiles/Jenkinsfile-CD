@@ -12,7 +12,7 @@ pipeline {
     }
 
     environment {
-        REPO_URL = 'https://github.com/DipHuy/spring-petclinic-microservices.git'
+        REPO_URL = 'https://github.com/DipHuy/HCMUS-Intro_DevOps-spring-petclinic-microservices.git'
         IMAGE_NAME = 'diphuy/spring-petclinic'
         HELM_DIR = 'Helm'
         NAMESPACE = "dev-${BUILD_ID}"
