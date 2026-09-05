@@ -1,0 +1,75 @@
+pipeline {
+    agent { label 'windows' }
+
+
+    environment {
+        REPO_URL = 'https://github.com/DipHuy/HCMUS-Intro_DevOps-spring-petclinic-microservices.git'
+        GITOPS_REPO_URL = 'github.com/DipHuy/HCMUS-Intro_DevOps-gitops-spring-petclinic-microservices.git'
+        GITHUB_CREDENTIALS_ID = 'PAT_Github_Intro_DevOps'
+        HELM_DIR = 'Helm'
+        DEV_VALUES_FILE = 'values-dev.yaml'
+        JENKIN_URL = "https://jenkins.diephuy.dpdns.org/"
+        IMAGE_TAG = ""
+    }
+
+
+    stages {
+        stage('Checkout gitops repo') {
+            steps {
+                dir('gitops') {
+                    git(
+                        url: 'https://${GITOPS_REPO_URL}.git',
+                        branch: 'main',
+                        credentialsId: 'PAT_Github_Intro_DevOps'
+                    )
+                }
+            }
+        }
+
+        stage('Update dev values') {
+            steps {
+                script {
+                    def commitID = bat(script: "git ls-remote ${REPO_URL} refs/heads/${service.branch}", returnStdout: true).trim()
+                    def parts = commitID.split('\\s+')
+                        
+                    if (parts.size() <= 0 || !parts[0]) {
+                          error "Failed to retrieve commit ID for branch ${service.branch}"
+                    }
+                        
+                    env.IMAGE_TAG = parts[0].trim()
+                }
+
+                dir('gitops') {
+                    def tag = env.IMAGE_TAG
+                    def valuesFilePath = "${HELM_DIR}/${DEV_VALUES_FILE}"
+                    def valuesContent = readFile(file: valuesFilePath)
+                    def updatedContent = valuesContent.replaceAll(/image:\s*.*$/, "image: ${IMAGE_NAME}:${tag}")
+                    writeFile(file: valuesFilePath, text: updatedContent)
+                    echo "Updated ${valuesFilePath} with image tag: ${tag}"
+                }
+            }
+        }
+
+        stage('Commit and push change') {
+            steps {
+                dir('gitops') {
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: "${GITHUB_CREDENTIALS_ID}",
+                            usernameVariable: 'USERNAME',
+                            passwordVariable: 'PASSWORD'
+                        )
+                     ]) {
+                        bat """
+                            git config user.name "Jenkins"
+                            git config user.email "jenkins@example.com"
+
+                            git add .
+                            git push https://${USERNAME}:${PASSWORD}@${GITOPS_REPO_URL} HEAD:main
+                        """
+                    }
+                }
+            }
+        }
+    }   
+}
