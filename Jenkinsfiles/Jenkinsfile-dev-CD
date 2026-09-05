@@ -30,6 +30,10 @@ pipeline {
                 script {
                     def commitID = bat(script: "git ls-remote ${env.REPO_URL} refs/heads/main", returnStdout: true).trim()
                     def parts = commitID.split('\\s+')
+
+                    // print parts for debugging
+                    echo "Commit ID parts: ${parts}"
+
                     
                     if (parts.size() <= 0 || !parts[0]) {
                           error "Failed to retrieve commit ID for branch main"
