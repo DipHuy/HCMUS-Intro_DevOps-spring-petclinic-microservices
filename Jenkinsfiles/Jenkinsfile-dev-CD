@@ -29,23 +29,26 @@ pipeline {
         stage('Update dev values') {
             steps {
                 script {
-                    def commitID = bat(script: "git ls-remote ${REPO_URL} refs/heads/${service.branch}", returnStdout: true).trim()
+                    def commitID = bat(script: "git ls-remote ${REPO_URL} refs/heads/main", returnStdout: true).trim()
                     def parts = commitID.split('\\s+')
                         
                     if (parts.size() <= 0 || !parts[0]) {
-                          error "Failed to retrieve commit ID for branch ${service.branch}"
+                          error "Failed to retrieve commit ID for branch main"
                     }
                         
                     env.IMAGE_TAG = parts[0].trim()
                 }
 
                 dir('gitops') {
-                    def tag = env.IMAGE_TAG
-                    def valuesFilePath = "${HELM_DIR}/${DEV_VALUES_FILE}"
-                    def valuesContent = readFile(file: valuesFilePath)
-                    def updatedContent = valuesContent.replaceAll(/image:\s*.*$/, "image: ${IMAGE_NAME}:${tag}")
-                    writeFile(file: valuesFilePath, text: updatedContent)
-                    echo "Updated ${valuesFilePath} with image tag: ${tag}"
+                    script {
+                        def tag = env.IMAGE_TAG
+                        def valuesFilePath = "${HELM_DIR}/${DEV_VALUES_FILE}"
+                        def valuesContent = readFile(file: valuesFilePath)
+                        def updatedContent = valuesContent.replaceAll(/image:\s*.*$/, "image: ${IMAGE_NAME}:${tag}")
+                        writeFile(file: valuesFilePath, text: updatedContent)
+                        echo "Updated ${valuesFilePath} with image tag: ${tag}"
+                    }
+                    
                 }
             }
         }
@@ -60,14 +63,17 @@ pipeline {
                             passwordVariable: 'PASSWORD'
                         )
                      ]) {
-                        bat """
-                            git config user.name "Jenkins"
-                            git config user.email "jenkins@example.com"
+                          script {
+                          bat """
+                              git config user.name "Jenkins"
+                              git config user.email "jenkins@example.com"
 
-                            git add .
-                            git push https://${USERNAME}:${PASSWORD}@${GITOPS_REPO_URL} HEAD:main
-                        """
-                    }
+                              git add .
+                              git commit -m "Update dev values with image tag: ${IMAGE_TAG}" || exit 0
+                              git push https://${USERNAME}:${PASSWORD}@${GITOPS_REPO_URL} HEAD:main
+                          """
+                          }
+                     }
                 }
             }
         }
