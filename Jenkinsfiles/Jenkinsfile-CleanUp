@@ -1,0 +1,32 @@
+pipeline {
+    agent { label 'windows' }
+
+    parameters {
+        string(name: 'namespace', defaultValue: '')
+    }
+
+    environment {
+        NAMESPACE = "${params.namespace}"
+    }
+
+    stages {
+        stage('Clean up') {
+            steps {
+                script {
+                    if (NAMESPACE?.trim()) {
+                        withCredentials([file(credentialsId: "Intro_DevOps_Kubeconfig", variable: 'KUBECONFIG')]) {
+                            bat """
+                                kubectl delete namespace ${NAMESPACE} --ignore-not-found
+                            """
+
+                            echo "Namespace ${NAMESPACE} has been deleted."
+                        }
+                    } else {
+                        error "Namespace parameter is required for cleanup."
+                    }
+                }
+            }
+        }
+        
+    }   
+}
