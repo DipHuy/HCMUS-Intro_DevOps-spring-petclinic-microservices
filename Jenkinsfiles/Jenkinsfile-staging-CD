@@ -66,14 +66,15 @@ pipeline {
                         )
                      ]) {
                         script {
-                        bat """
-                              git config user.name "Jenkins"
-                              git config user.email "jenkins@example.com"
+                            def tag = params['TAG_NAME']?.trim()        
+                            bat """
+                                git config user.name "Jenkins"
+                                git config user.email "jenkins@example.com"
 
-                              git add .
-                              git commit -m "Update staging values with tag ${tagName}" || exit 0
-                              git push https://${USERNAME}:${PASSWORD}@${env.GITOPS_REPO_URL} HEAD:main
-                        """
+                                git add .
+                                git commit -m "Update staging values with tag ${tag}" || exit 0
+                                git push https://${USERNAME}:${PASSWORD}@${env.GITOPS_REPO_URL} HEAD:main
+                            """
 
                           
                         }
