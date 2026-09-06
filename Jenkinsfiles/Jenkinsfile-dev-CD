@@ -34,7 +34,9 @@ pipeline {
                         
                         env.COMMIT_ID = bat(script: "@echo off & git ls-remote ${env.REPO_URL} refs/heads/main", returnStdout: true).trim()
 
-                        def tag = env.COMMIT_ID
+
+
+                        def tag = env.COMMIT_ID.split()[0]
                     
                         echo "tag for main: ${tag}"
 
