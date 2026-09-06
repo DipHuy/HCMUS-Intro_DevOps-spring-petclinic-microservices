@@ -12,24 +12,61 @@ pipeline {
             }
         }
 
-        stage('Get Commit ID') {
+
+        stage('Get Image Tag') {
             steps {
                 script {
-                  if (env.GIT_COMMIT) {
-                    env.COMMIT_ID = env.GIT_COMMIT
-                  } else {
-                    env.COMMIT_ID = bat(
-                        script: 'git rev-parse HEAD',
-                        returnStdout: true
-                    ).trim()
 
-                    echo "Branch      : ${env.BRANCH_NAME}"
-                    echo "Commit ID   : ${env.COMMIT_ID}"
-                    echo "Docker Tag  : ${env.COMMIT_ID}"
+                    if (env.TAG_NAME?.trim()) {
+
+                        env.IMAGE_TAG = env.TAG_NAME
+                        env.BUILD_TYPE = "staging"
+
+                    } else {
+
+                        env.IMAGE_TAG = env.GIT_COMMIT ?: bat(
+                            script: 'git rev-parse HEAD',
+                            returnStdout: true
+                        ).trim()
+
+                        env.BUILD_TYPE = "dev"
+                    }
+
+                    echo "Build type : ${env.BUILD_TYPE}"
+                    echo "Branch     : ${env.BRANCH_NAME}"
+                    echo "Git Tag    : ${env.TAG_NAME}"
+                    echo "Image Tag  : ${env.IMAGE_TAG}"
                 }
             }
         }
+
+        stage('Validate Release Tag') {
+            when {
+                expression { return env.TAG_NAME }
+            }
+
+            steps {
+                checkout scm
+
+                bat 'git fetch origin main --tags'
+
+                script {
+                    def status = bat(
+                        script: """
+                            git merge-base --is-ancestor %TAG_NAME% origin/main
+                        """,
+                        returnStatus: true
+                    )
+
+                    if (status != 0) {
+                        error "Tag ${env.TAG_NAME} is not a descendant of branch main!"
+                    }
+
+                    echo "Valid release tag: ${env.TAG_NAME}"
+                }
+            }
         }
+
 
         stage('Build and Push Docker Image') {
             steps {
@@ -47,7 +84,7 @@ pipeline {
                             echo %DOCKER_PASSWORD%| docker login -u %DOCKER_USERNAME% --password-stdin
                             """
                             
-                            def imageTag = env.COMMIT_ID
+                            def imageTag = env.IMAGE_TAG
 
 
                             def mvnCommand = "./mvnw.cmd clean install -P buildDocker -DskipTests " + "-Ddocker.image.prefix=${env.DOCKER_USERNAME} " + "-Ddocker.image.tag.commit=${imageTag} " + "-Dcontainer.build.extraarg=\"--push\""
@@ -67,11 +104,25 @@ pipeline {
                 }
             }
         }
+
+        stage('Trigger Staging Deployment') {
+            when {
+                expression { return env.BUILD_TYPE == "staging" && env.TAG_NAME?.trim() }
+            }
+
+            steps {
+                build job: 'CD-staging', parameters: [
+                    string(name: 'TAG_NAME', value: env.TAG_NAME),
+                ]
+            }
+        }
     }
 
     post {
         success {
             echo "Docker image pushed successfully:"
+
+
         }
 
         failure {
