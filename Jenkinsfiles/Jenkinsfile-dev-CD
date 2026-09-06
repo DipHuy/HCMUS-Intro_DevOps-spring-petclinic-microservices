@@ -32,7 +32,7 @@ pipeline {
                 dir('gitops') {
                     script {
                         
-                        env.COMMIT_ID = bat(script: "git ls-remote ${env.REPO_URL} refs/heads/main", returnStdout: true).trim()
+                        env.COMMIT_ID = bat(script: "@echo off & git ls-remote ${env.REPO_URL} refs/heads/main", returnStdout: true).trim()
 
                         def tag = env.COMMIT_ID
                     
