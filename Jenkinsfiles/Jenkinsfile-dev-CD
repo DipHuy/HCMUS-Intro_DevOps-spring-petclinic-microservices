@@ -32,11 +32,16 @@ pipeline {
                 dir('gitops') {
                     script {
                         
-                        env.COMMIT_ID = bat(script: "@echo off & git ls-remote ${env.REPO_URL} refs/heads/main", returnStdout: true).trim()
+                        env.COMMIT_ID = bat(script: '@git ls-remote ' + env.REPO_URL + ' refs/heads/feature/add-ci-cd', returnStdout: true).trim()
+
+                        def parts = env.COMMIT_ID.split('\\s+')
+
+                        for (int i = 0; i < parts.length; i++) {
+                            echo "Part ${i}: ${parts[i]}"
+                        }
 
 
-
-                        def tag = env.COMMIT_ID.split()[0]
+                        def tag = parts[0].trim()
                     
                         echo "tag for main: ${tag}"
 
