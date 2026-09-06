@@ -27,30 +27,27 @@ pipeline {
 
         stage('Update dev values') {
             steps {
+                
+
                 dir('gitops') {
                     script {
-                        def rawOutput = bat(
-                            script: '@echo off & git ls-remote ' + env.REPO_URL + ' refs/heads/main', 
-                            returnStdout: true
-                        ).trim()
+                        
+                        env.COMMIT_ID = bat(script: '@git ls-remote ' + env.REPO_URL + ' refs/heads/main', returnStdout: true).trim()
 
-                        def targetLine = rawOutput.readLines().find { it.contains('refs/heads/main') }
+                        def parts = env.COMMIT_ID.split('\\s+')
 
-                        if (!targetLine) {
-                            error("Not found:\n${rawOutput}")
-                        }
-
-                        def tag = targetLine.trim().split('\\s+')[0]
-                        echo "Tag resolved: ${tag}"
+                        def tag = parts[0].trim()
+                    
+                        echo "tag for main: ${tag}"
 
                         def valuesFilePath = "${HELM_DIR}/${DEV_VALUES_FILE}"
                         def valuesContent = readFile(file: valuesFilePath)
-
-                        def updatedContent = valuesContent.replaceAll(/tag:\s*.*/, "tag: ${tag}")
+                        def updatedContent = valuesContent.replaceAll(/tag:\s*[A-Za-z0-9._-]+/,"tag: ${tag}")
 
                         writeFile(file: valuesFilePath, text: updatedContent)
                         echo "Updated ${valuesFilePath} with image tag: ${tag}"
                     }
+                    
                 }
             }
         }
