@@ -27,28 +27,18 @@ pipeline {
 
         stage('Update dev values') {
             steps {
-                script {
-                    def commitID = bat(script: "@git ls-remote ${env.REPO_URL} refs/heads/main", returnStdout: true).trim()
-
-                    echo "raw commitID: ${commitID}"
-
-                    def parts = commitID.split('\\s+')
-
-                    echo "parts: ${parts}"
-
-                    for (int i = 0; i < parts.size(); i++) {
-                        echo "parts[${i}]: ${parts[i]}"
-                    }
-                    
-                    def line = commitID.readLines().last().trim()
-
-                    IMAGE_TAG = line.tokenize()[0]
-
-                }
+                
 
                 dir('gitops') {
                     script {
-                        def tag = IMAGE_TAG
+                        def commitID = bat(script: "@git ls-remote ${env.REPO_URL} refs/heads/main", returnStdout: true).trim()
+
+                        def parts = commitID.split('\\s+')
+
+                    
+                        def tag = parts[0].trim()
+                        echo "tag for main: ${tag}"
+
                         def valuesFilePath = "${HELM_DIR}/${DEV_VALUES_FILE}"
                         def valuesContent = readFile(file: valuesFilePath)
                         def updatedContent = valuesContent.replaceAll(/tag:\s*[A-Za-z0-9._-]+/,"tag: ${tag}")
@@ -76,7 +66,7 @@ pipeline {
                               git config user.email "jenkins@example.com"
 
                               git add .
-                              git commit -m "Update dev values with image tag: ${IMAGE_TAG}" || exit 0
+                              git commit -m "Update dev values" || exit 0
                               git push https://${USERNAME}:${PASSWORD}@${env.GITOPS_REPO_URL} HEAD:main
                         """
 
