@@ -28,6 +28,36 @@ pipeline {
             }
         }
 
+        stage('Validate Release Tag') {
+
+            steps {
+                checkout scm
+
+                bat 'git fetch origin main --tags'
+
+                script {
+                    def tagName = params['TAG_NAME']?.trim()
+                    
+                    if (!tagName) {
+                        error "TAG_NAME parameter is required."
+                    }
+                    
+                    def status = bat(
+                        script: """
+                            git merge-base --is-ancestor ${tagName} origin/main
+                        """,
+                        returnStatus: true
+                    )
+
+                    if (status != 0) {
+                        error "Tag ${tagName} is not a descendant of branch main!"
+                    }
+
+                    echo "Valid release tag: ${tagName}"
+                }
+            }
+        }
+
         stage('Update dev values') {
             steps {
                 
