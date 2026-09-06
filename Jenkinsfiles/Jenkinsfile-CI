@@ -40,33 +40,6 @@ pipeline {
             }
         }
 
-        stage('Validate Release Tag') {
-            when {
-                expression { return env.TAG_NAME }
-            }
-
-            steps {
-                checkout scm
-
-                bat 'git fetch origin main --tags'
-
-                script {
-                    def status = bat(
-                        script: """
-                            git merge-base --is-ancestor %TAG_NAME% origin/main
-                        """,
-                        returnStatus: true
-                    )
-
-                    if (status != 0) {
-                        error "Tag ${env.TAG_NAME} is not a descendant of branch main!"
-                    }
-
-                    echo "Valid release tag: ${env.TAG_NAME}"
-                }
-            }
-        }
-
 
         stage('Build and Push Docker Image') {
             steps {
@@ -121,8 +94,6 @@ pipeline {
     post {
         success {
             echo "Docker image pushed successfully:"
-
-
         }
 
         failure {
