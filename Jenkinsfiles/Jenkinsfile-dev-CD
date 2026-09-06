@@ -31,7 +31,7 @@ pipeline {
 
                 dir('gitops') {
                     script {
-                        def commitID = bat(script: "@git ls-remote ${env.REPO_URL} refs/heads/main", returnStdout: true).trim()
+                        def commitID = bat(script: "@echo off & git ls-remote ${env.REPO_URL} refs/heads/main", returnStdout: true).trim()
 
                         def parts = commitID.split('\\s+')
 
