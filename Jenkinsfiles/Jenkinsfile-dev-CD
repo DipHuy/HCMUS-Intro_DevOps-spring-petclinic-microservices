@@ -49,9 +49,6 @@ pipeline {
                         def valuesContent = readFile(file: valuesFilePath)
                         def updatedContent = valuesContent.replaceAll(/tag:\s*[A-Za-z0-9._-]+/,"tag: ${tag}")
 
-                        bat """
-                        echo "Updated content: ${updatedContent}"
-                        """
                         
 
                         writeFile(file: valuesFilePath, text: updatedContent)
