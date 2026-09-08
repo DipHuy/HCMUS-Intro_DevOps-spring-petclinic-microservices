@@ -4,29 +4,23 @@ $MasterCloudInit = Join-Path $PSScriptRoot "cloud-init-master.yaml"
 $WorkerCloudInit = Join-Path $PSScriptRoot "cloud-init-worker.yaml"
 $Image = "22.04"
 $CPU = 2
-$Memory = "2G"
+$MasterMemory = "2G"
+$WorkerMemory = "5G"
 $Disk = "10G"
 
 Write-Host "Creating Master VM..."
-
-multipass launch $Image --name $MasterName --cpus $CPU --memory $Memory --disk $Disk --cloud-init $MasterCloudInit
+multipass launch $Image --name $MasterName --cpus $CPU --memory $MasterMemory --disk $Disk --cloud-init $MasterCloudInit
+multipass exec $MasterName -- cloud-init status --wait
 Write-Host "Master VM created."
 
 Write-Host "----------"
 
 Write-Host "Creating Worker VM..."
-multipass launch $Image --name $WorkerName --cpus $CPU --memory $Memory --disk $Disk --cloud-init $WorkerCloudInit
+multipass launch $Image --name $WorkerName --cpus $CPU --memory $WorkerMemory --disk $Disk --cloud-init $WorkerCloudInit
+multipass exec $WorkerName -- cloud-init status --wait
 Write-Host "Worker VM created."
 
-$masterIp = (multipass info $MasterName | Select-String "IPv4").ToString().Split()[1]
-$workerIp = (multipass info $WorkerName | Select-String "IPv4").ToString().Split()[1]
-
-multipass exec $MasterName -- sudo bash -c "echo '$masterIp $MasterName' >> /etc/hosts"
-multipass exec $MasterName -- sudo bash -c "echo '$workerIp $WorkerName' >> /etc/hosts"
-
-multipass exec $WorkerName -- sudo bash -c "echo '$masterIp $MasterName' >> /etc/hosts"
-multipass exec $WorkerName -- sudo bash -c "echo '$workerIp $WorkerName' >> /etc/hosts"
-
+# Join the worker node to the master node
 Write-Host "Joining $WorkerName to $MasterName cluster"
 $joinCommand = (
     multipass exec $MasterName -- sudo kubeadm token create --print-join-command

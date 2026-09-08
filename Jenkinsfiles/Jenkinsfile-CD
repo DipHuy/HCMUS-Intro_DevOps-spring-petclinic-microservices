@@ -127,8 +127,8 @@ pipeline {
                         </div>
                     """.stripIndent()
                 }
+                }
             }
-        }
         }
         
     }   
