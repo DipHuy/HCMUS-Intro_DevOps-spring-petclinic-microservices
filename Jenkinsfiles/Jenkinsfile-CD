@@ -57,7 +57,7 @@ pipeline {
 
                     for (service in services) {
 
-                        def commitID = bat(script: "git ls-remote ${REPO_URL} refs/heads/${service.branch}", returnStdout: true).trim()
+                        def commitID = bat(script: "@git ls-remote ${REPO_URL} refs/heads/${service.branch}", returnStdout: true).trim()
                         def parts = commitID.split('\\s+')
                         
                         if (parts.size() <= 0 || !parts[0]) {
