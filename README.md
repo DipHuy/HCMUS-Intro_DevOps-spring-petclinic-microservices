@@ -303,4 +303,28 @@ multipass exec master -- kubectl get applications -n argocd
     - Credentials: `PAT_Github_Intro_DevOps` (this ID will be referenced by Jenkins)    
     - Script Path: `Jenkinsfiles/Jenkinsfile-staging-CD`
 
-### IV. Demonstration
+## IV. Demonstration
+### 1. Create Cluster
+https://github.com/user-attachments/assets/d68dbbc9-c599-48b5-96f8-0d24f7f46e8e
+
+### 2. Update KUBECONFIG and connect Jenkins agent
+https://github.com/user-attachments/assets/0a87b853-04db-4d64-8695-85cf1cd60bbc
+
+### 3. CI pipeline
+https://github.com/user-attachments/assets/bfdef9de-d3ab-4be7-904e-eda22fef7503
+
+### 4. developer_build
+https://github.com/user-attachments/assets/f612d755-7d0d-4b4d-bd89-c4defec75602
+
+### 5. Setup Argo CD
+https://github.com/user-attachments/assets/4c83efd7-f065-4561-b7b3-7ef013739773
+
+### 6. Argo CD pipeline
+#### 6.1 dev pipeline
+https://github.com/user-attachments/assets/a468fce3-38ed-4d22-83a1-daa5a19cd8fc
+
+#### 6.2 staging pipeline
+https://github.com/user-attachments/assets/d36fba06-8ec9-4d52-b73c-89798c099d93
+
+
+
