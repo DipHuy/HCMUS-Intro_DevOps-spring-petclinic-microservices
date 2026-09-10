@@ -95,6 +95,21 @@ The pipeline detects the Git tag. Build Docker images using the release tag (e.g
 - Choose a JDK version, i use JDK 21 Adoptium Eclipse Temurin. You can choose which JDK version at: https://whichjdk.com/
 - Install Jenkins on a server or local machine at: https://www.jenkins.io/download/
 
+- Create windows agent:
+  - Create new agent at <Jenkins_url>/computer/new
+  ![](./docs/ci_cd/agent-1.png)
+  - Number of executor: depend on how many cpus and parallel job your computer can handle
+  - Remote root directory: root directory of agent, must be an existed path
+  ![](./docs/ci_cd/agent-2.png)
+  - Then click on that agent to connect agent
+  ![](./docs/ci_cd/agent-3.png)
+  - I'm focus on Windows method and save the command into a bat file named `run_agent.bat`
+  ![](./docs/ci_cd/agent-4.png)
+  ![](./docs/ci_cd/agent-5.png)
+  - To connect run `run_agent.bat` (by using cli or double click on it)
+  ![](./docs/ci_cd/agent-6.png)
+  
+  
 ### 2. Docker setup
 - Install Docker on your machine at: https://docs.docker.com/desktop/
 - I'm using Docker Desktop for Windows, you can choose which version at: https://docs.docker.com/desktop/install/windows-install/
