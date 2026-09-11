@@ -17,6 +17,42 @@ Application source: [https://github.com/spring-projects/spring-petclinic](https:
 
 This repository only contains the DevOps infrastructure and deployment workflow developed for academic purposes.
 
+## Table of Content
+   * [Acknowledgement](#acknowledgement)
+   * [Original Project](#original-project)
+   * [I. Project Description](#i-project-description)
+   * [II. Requirements](#ii-requirements)
+      * [1. Default Docker Images](#1-default-docker-images)
+      * [2. Kubernetes Cluster](#2-kubernetes-cluster)
+      * [3. Continuous Integration (CI):](#3-continuous-integration-ci)
+      * [4. Developer CD Pipeline](#4-developer-cd-pipeline)
+      * [5. Cleanup Pipeline](#5-cleanup-pipeline)
+      * [6. GitOps-based CD Pipelines](#6-gitops-based-cd-pipelines)
+         * [6.1 Development Environment](#61-development-environment)
+         * [6.2 Staging Environment](#62-staging-environment)
+   * [III. Tutorials](#iii-tutorials)
+      * [1. Jenkins Setup](#1-jenkins-setup)
+      * [2. Docker setup](#2-docker-setup)
+      * [3. Multipass setup](#3-multipass-setup)
+      * [4. Kubernetes setup](#4-kubernetes-setup)
+      * [5. Argo CD setup](#5-argo-cd-setup)
+      * [6. GitHub setup](#6-github-setup)
+      * [7. Docker Hub setup](#7-docker-hub-setup)
+      * [7. Jenkins CI Pipeline setup](#7-jenkins-ci-pipeline-setup)
+      * [8. Jenkins Developer CD Pipeline setup](#8-jenkins-developer-cd-pipeline-setup)
+      * [9. Jenkins Cleanup Pipeline setup](#9-jenkins-cleanup-pipeline-setup)
+      * [10. Jenkins GitOps CD Pipeline setup](#10-jenkins-gitops-cd-pipeline-setup)
+         * [10.1 Development Environment](#101-development-environment)
+         * [10.2 Staging Environment](#102-staging-environment)
+   * [IV. Demonstration](#iv-demonstration)
+      * [1. Create Cluster](#1-create-cluster)
+      * [2. Update KUBECONFIG and connect Jenkins agent](#2-update-kubeconfig-and-connect-jenkins-agent)
+      * [3. CI pipeline](#3-ci-pipeline)
+      * [4. developer_build](#4-developer_build)
+      * [5. Setup Argo CD](#5-setup-argo-cd)
+      * [6. Argo CD pipeline](#6-argo-cd-pipeline)
+         * [6.1 dev pipeline](#61-dev-pipeline)
+         * [6.2 staging pipeline](#62-staging-pipeline)
 
 ## I. Project Description
 
